@@ -1,4 +1,5 @@
 import csv
+import time
 
 from models import Base, session, Brand, Product, engine
 from cleaners import clean_price, clean_quantity, clean_date
@@ -26,6 +27,22 @@ def main_menu():
             \rPress enter to try again.""")
 
 
+def product_menu():
+    while True:
+        print('''
+            \r**** PRODUCT Menu ****
+            \r1) Delete this product
+            \r2) Update this Product
+            \r3) Back to main menu''')
+        choice = input("\nWhat would you like to do? ").lower()
+        if choice in ['1', '2', '3']:
+            return choice
+        else:
+            input('''
+                \rPlease choose one of the options above..
+                \rPress enter to try again''')
+
+
 def print_product(product):
     print(f"""
     \rProduct ID: \t{product.product_id}
@@ -35,7 +52,7 @@ def print_product(product):
     \rDate Updated: \t{product.date_updated.strftime("%m/%d/%Y")}""")
 
 
-def view_single_product():
+def read_product():
     id_options = []
     for product in session.query(Product):
         id_options.append(product.product_id)
@@ -61,6 +78,25 @@ def view_single_product():
                 \rPress enter to try again.""")
     product = session.query(Product).filter_by(product_id=choice).first()
     print_product(product)
+    choice = product_menu()
+    if choice == '1':
+        delete_product(product)
+    elif choice == '2':
+        update_product(product)
+
+
+def create_product():
+    print('creating product')
+
+
+def update_product(product):
+    print('updating product')
+    time.sleep(2)
+
+
+def delete_product(product):
+    print('deleting product')
+    time.sleep(2)
 
 
 def add_csv():
@@ -96,7 +132,9 @@ def app():
     while app_running:
         choice = main_menu()
         if choice == 'v':
-            view_single_product()
+            read_product()
+        elif choice == 'n':
+            create_product()
 
 
 if __name__ == "__main__":
