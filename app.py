@@ -4,6 +4,65 @@ from models import Base, session, Brand, Product, engine
 from cleaners import clean_price, clean_quantity, clean_date
 
 
+def main_menu():
+    '''
+    Display the main menu and get the user's input.
+    '''
+    while True:
+        print("""
+        \nWelcome to the inventory management system!
+        \rPlease select an option:
+        \n V - View single product
+        \r N - Add a new product
+        \r A - view an Analysis
+        \r B - Make a backup""")
+        choice = input("\rEnter your choice: ").lower()
+        if choice in ['v', 'n', 'a', 'b']:
+            return choice
+        else:
+            input("""
+            \n***** INVALID INPUT *****
+            \rPlease enter a valid option.
+            \rPress enter to try again.""")
+
+
+def print_product(product):
+    print(f"""
+    \rProduct ID: \t{product.product_id}
+    \rProduct Name: \t{product.product_name}
+    \rProduct Qty: \t{product.product_quantity}
+    \rProduct Price: \t{product.product_price}
+    \rDate Updated: \t{product.date_updated.strftime("%m/%d/%Y")}""")
+
+
+def view_single_product():
+    id_options = []
+    for product in session.query(Product):
+        id_options.append(product.product_id)
+    id_error = True
+    while id_error:
+        choice = input(f"""
+        \nID options: {id_options}
+        \rProduct ID: """)
+        try:
+            product_id = int(choice)
+        except ValueError:
+            input("""
+            \n***** INVALID INPUT *****
+            \rPlease enter a valid ID.
+            \rPress enter to try again.""")
+        else:
+            if product_id in id_options:
+                id_error = False
+            else:
+                input("""
+                \n***** INVALID INPUT *****
+                \rPlease enter a valid ID.
+                \rPress enter to try again.""")
+    product = session.query(Product).filter_by(product_id=choice).first()
+    print_product(product)
+
+
 def add_csv():
     with open('brands.csv') as csvfile:
         data = csv.reader(csvfile)
@@ -24,12 +83,23 @@ def add_csv():
                 price = clean_price(row[1])
                 quantity = clean_quantity(row[2])
                 date_updated = clean_date(row[3])
+                brand_id = session.query(Brand).filter(
+                    Brand.brand_name == row[4]).one().brand_id
                 new_product = Product(product_name=name, product_price=price,
-                                      product_quantity=quantity, date_updated=date_updated)
+                                      product_quantity=quantity, date_updated=date_updated, brand_id=brand_id)
                 session.add(new_product)
         session.commit()
+
+
+def app():
+    app_running = True
+    while app_running:
+        choice = main_menu()
+        if choice == 'v':
+            view_single_product()
 
 
 if __name__ == "__main__":
     Base.metadata.create_all(engine)
     add_csv()
+    app()

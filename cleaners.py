@@ -2,7 +2,6 @@ import datetime
 
 
 def clean_price(string):
-    print(string)
     string = string.replace('$', '')
     try:
         price = float(string)
