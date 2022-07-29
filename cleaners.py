@@ -12,7 +12,8 @@ def clean_price(string):
         \rEx: $2.99
         \rPress enter to try again.
         \r**********************''')
-    return (int(price * 100))
+    else:
+        return (int(price * 100))
 
 
 def clean_quantity(quantity_str):

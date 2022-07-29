@@ -86,7 +86,51 @@ def read_product():
 
 
 def create_product():
-    print('creating product')
+    # TODO Manage errors as currently the clean functions don't seem to handle them flawlessly
+    name = input("\rProduct Name: ")
+    price_error = True
+    while price_error:
+        price = input("\rProduct Price: ")
+        try:
+            price = clean_price(price)
+        except ValueError:
+            input("""
+            \n***** PRICE ERROR *****
+            \rThe price should be a number with a dollar symbol.
+            \rEx: $2.99
+            \rPress enter to try again.
+            \r**********************""")
+        else:
+            price_error = False
+    quantity = input("\rProduct Quantity: ")
+    date_error = True
+    while date_error:
+        date_updated = input("\rDate Updated: ")
+        try:
+            date_updated = clean_date(date_updated)
+        except ValueError:
+            input("""
+            \r***** INVALID INPUT *****
+            \rPlease enter a valid date.
+            \rPress enter to try again.""")
+        else:
+            date_error = False
+    brand = input("\rBrand: ")
+    brand_exists = session.query(Brand).filter(
+        Brand.brand_name == brand).first()
+    if brand_exists:
+        brand_id = brand_exists.brand_id
+    else:
+        brand_id = session.query(Brand).count() + 1
+        new_brand = Brand(brand_id=brand_id, brand_name=brand)
+        session.add(new_brand)
+    new_product = Product(product_id=session.query(Product).count() + 1,
+                          product_name=name, product_quantity=quantity,
+                          product_price=price, date_updated=date_updated,
+                          brand_id=brand_id)
+    session.add(new_product)
+    session.commit()
+    print("\rProduct added!")
 
 
 def update_product(product):
