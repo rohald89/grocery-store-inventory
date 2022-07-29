@@ -1,11 +1,12 @@
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 engine = create_engine('sqlite:///inventory.db', echo=False)
 Session = sessionmaker(bind=engine)
 session = Session()
 Base = declarative_base()
+
 
 class Brand(Base):
     __tablename__ = 'brands'

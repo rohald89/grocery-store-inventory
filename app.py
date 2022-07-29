@@ -3,6 +3,7 @@ import time
 
 from models import Base, session, Brand, Product, engine
 from cleaners import clean_price, clean_quantity, clean_date
+from sqlalchemy import func, desc
 
 
 def main_menu():
@@ -143,6 +144,22 @@ def delete_product(product):
     time.sleep(2)
 
 
+def analysis():
+    most_expensive = session.query(Product).order_by(
+        Product.product_price.desc()).first()
+    least_expensive = session.query(Product).order_by(
+        Product.product_price).first()
+    most_popular_brand = session.query(Product.brand_id,
+                                       func.count(Product.brand_id).label(
+                                           'count')
+                                       ).group_by(Product.brand_id).order_by(desc('count'))
+    print(f"""
+    \rMost Expensive: {most_expensive.product_name}
+    \rLeast Expensive: {least_expensive.product_name}
+    \rMost Popular Brand: {most_popular_brand}""")
+    time.sleep(2)
+
+
 def add_csv():
     with open('brands.csv') as csvfile:
         data = csv.reader(csvfile)
@@ -179,6 +196,8 @@ def app():
             read_product()
         elif choice == 'n':
             create_product()
+        elif choice == 'a':
+            analysis()
 
 
 if __name__ == "__main__":
