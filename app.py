@@ -199,16 +199,19 @@ def analysis():
 def create_backup():
     with open('backup_inventory.csv', 'w') as file:
         fieldnames = ['product_name', 'product_price',
-                      'product_quantity', 'date_updated']
+                      'product_quantity', 'date_updated',
+                      'brand_name']
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
         products = session.query(Product).all()
         for product in products:
+            price = "{:.2f}".format(product.product_price / 100)
             writer.writerow({
                     fieldnames[0]: product.product_name,
-                    fieldnames[1]: f"${product.product_price / 100}",
+                    fieldnames[1]: f"${price}",
                     fieldnames[2]: product.product_quantity,
-                    fieldnames[3]: product.date_updated.strftime("%m/%d/%Y")})
+                    fieldnames[3]: product.date_updated.strftime("%-m/%-d/%Y"),
+                    fieldnames[4]: product.brand.brand_name})
     print("\nSuccessfully created a backup of the inventory")
     with open('backup_brands.csv', 'w') as file:
         fieldnames = ['brand_id', 'brand_name']
