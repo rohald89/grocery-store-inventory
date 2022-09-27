@@ -107,10 +107,12 @@ def create_product():
         try:
             date_updated = clean_date(date_updated)
         except ValueError:
-            input("""
-            \r***** INVALID INPUT *****
-            \rPlease enter a valid date.
-            \rPress enter to try again.""")
+            input('''
+                \n**** DATE ERROR ****
+                \rThe date format should include a valid DD/MM/YYYY format from the past
+                \rEx: 4/28/2021
+                \rPress enter to try again.
+                \r*******************''')
         else:
             date_error = False
     brand = input("\rBrand: ")
@@ -122,11 +124,18 @@ def create_product():
         brand_id = session.query(Brand).count() + 1
         new_brand = Brand(brand_id=brand_id, brand_name=brand)
         session.add(new_brand)
-    new_product = Product(product_id=session.query(Product).count() + 1,
-                          product_name=name, product_quantity=quantity,
+    new_product = Product(product_name=name, product_quantity=quantity,
                           product_price=price, date_updated=date_updated,
                           brand_id=brand_id)
-    session.add(new_product)
+    existing_product = session.query(Product).filter(Product.product_name == new_product.product_name).first()
+    if existing_product:
+        existing_product.product_name = name
+        existing_product.product_price = price
+        existing_product.product_quantity = quantity
+        existing_product.date_updated = date_updated
+        existing_product.brand_id = brand_id
+    else:
+        session.add(new_product)
     session.commit()
     print("\rProduct added!")
 
@@ -168,7 +177,7 @@ def add_csv():
         for row in data:
             brand_exists = session.query(Brand).filter(
                 Brand.brand_name == row[0]).one_or_none()
-            if brand_exists == None:
+            if brand_exists is None:
                 brand = Brand(brand_name=row[0])
                 session.add(brand)
     with open('inventory.csv') as csvfile:
@@ -177,7 +186,7 @@ def add_csv():
         for row in data:
             already_exists = session.query(Product).filter(
                 Product.product_name == row[0]).one_or_none()
-            if already_exists == None:
+            if already_exists is None:
                 name = row[0]
                 price = clean_price(row[1])
                 quantity = clean_quantity(row[2])
