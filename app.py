@@ -109,8 +109,8 @@ def create_product():
     if brand_exists:
         brand_id = brand_exists.brand_id
     else:
-        brand_id = session.query(Brand).count() + 1
-        new_brand = Brand(brand_id=brand_id, brand_name=brand)
+        new_brand = Brand(brand_name=brand)
+        brand_id = new_brand.brand_id
         session.add(new_brand)
     new_product = Product(product_name=name, product_quantity=quantity,
                           product_price=price, date_updated=date_updated,
