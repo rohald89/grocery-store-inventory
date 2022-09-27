@@ -1,4 +1,5 @@
 import csv
+from os import wait
 import time
 
 from models import Base, session, Brand, Product, engine
@@ -160,14 +161,17 @@ def analysis():
         Product.product_price.desc()).first()
     least_expensive = session.query(Product).order_by(
         Product.product_price).first()
-    most_popular_brand = session.query(Product).order_by(
-        desc(func.count(Product.brand_id))).first()
-    least_popular_brand = session.query(Product).order_by(
-        func.count(Product.brand_id)).first()
+    # https://stackoverflow.com/questions/28033656/finding-most-frequent-values-in-column-of-array-in-sql-alchemy
+    most_common_brand_id, occurances = session.query(
+        Product.brand_id, func.count(Product.product_id).label('qty')
+        ).group_by('brand_id').order_by(desc('qty')).first()
+    print(most_common_brand_id, occurances)
+    most_common_brand = session.query(
+        Brand).filter_by(brand_id=most_common_brand_id).one_or_none()
     print(f"""
     \rMost Expensive: {most_expensive.product_name}
     \rLeast Expensive: {least_expensive.product_name}
-    \rMost Popular Brand: {most_popular_brand}""")
+    \rMost Popular Brand: {most_common_brand.brand_name}""")
     time.sleep(2)
 
 
