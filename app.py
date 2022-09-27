@@ -1,5 +1,6 @@
 import csv
 import time
+import datetime
 
 from models import Base, session, Brand, Product, engine
 from cleaners import clean_price, clean_quantity, clean_date
@@ -50,7 +51,7 @@ def print_product(product):
     \rProduct Name: \t{product.product_name}
     \rBrand Name: \t{product.brand.brand_name}
     \rProduct Qty: \t{product.product_quantity}
-    \rProduct Price: \t{product.product_price}
+    \rProduct Price: \t${product.product_price / 100}
     \rDate Updated: \t{product.date_updated.strftime("%m/%d/%Y")}""")
 
 
@@ -101,20 +102,7 @@ def create_product():
         quantity = clean_quantity(quantity)
         if type(quantity) == int:
             quantity_error = False
-    date_error = True
-    while date_error:
-        date_updated = input("\rDate Updated: ")
-        try:
-            date_updated = clean_date(date_updated)
-        except ValueError:
-            input('''
-                \n**** DATE ERROR ****
-                \rThe date format should include a valid MM/DD/YYYY format
-                \rEx: 4/28/2021
-                \rPress enter to try again.
-                \r*******************''')
-        else:
-            date_error = False
+    date_updated = datetime.datetime.now().date()
     brand = input("\rBrand: ")
     brand_exists = session.query(Brand).filter(
         Brand.brand_name == brand).first()
@@ -147,14 +135,40 @@ def update_product(product):
     '''
     Update an existing product
     '''
-    product.product_name = input("Provide a new Name")
+    print(f"Current Name: {product.product_name}")
+    new_name = input("Provide a new Name: ")
+    print(f"Current Price: ${product.product_price / 100}")
+    price_error = True
+    while price_error:
+        new_price = input("Provide a new Price: $")
+        new_price = clean_price(new_price)
+        if type(new_price) == int:
+            price_error = False
+    print(f"Current Quantity: {product.product_quantity}")
+    quantity_error = True
+    while quantity_error:
+        new_quantity = input("Provide a new quantity: ")
+        new_quantity = clean_quantity(new_quantity)
+        if type(new_quantity) == int:
+            quantity_error = False
+    product.product_name = new_name
+    product.product_price = new_price
+    product.product_quantity = new_quantity
+    product.date_updated = datetime.datetime.now().date()
 
-    time.sleep(2)
+    session.commit()
+    input('''
+    \rProduct succesfully updated!
+    \rPress enter to go back to the main menu''')
 
 
 def delete_product(product):
-    print('deleting product')
-    time.sleep(2)
+    confirm = input("Are you sure you want to delete this product? Y/N ")
+    if confirm.lower() == 'y':
+        session.delete(product)
+        session.commit()
+        print("\nProduct successfully deleted")
+        input("Press enter to go back to the main menu ")
 
 
 def analysis():
@@ -180,6 +194,33 @@ def analysis():
     \rLeast Expensive: {least_expensive.product_name}
     \rMost Popular Brand: {most_common_brand} with {occurances} products""")
     time.sleep(2)
+
+
+def create_backup():
+    with open('backup_inventory.csv', 'w') as file:
+        fieldnames = ['product_name', 'product_price',
+                      'product_quantity', 'date_updated']
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        products = session.query(Product).all()
+        for product in products:
+            writer.writerow({
+                    fieldnames[0]: product.product_name,
+                    fieldnames[1]: f"${product.product_price / 100}",
+                    fieldnames[2]: product.product_quantity,
+                    fieldnames[3]: product.date_updated.strftime("%m/%d/%Y")})
+    print("\nSuccessfully created a backup of the inventory")
+    with open('backup_brands.csv', 'w') as file:
+        fieldnames = ['brand_id', 'brand_name']
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        brands = session.query(Brand).all()
+        for brand in brands:
+            writer.writerow({
+                                fieldnames[0]: brand.brand_id,
+                                fieldnames[1]: brand.brand_name
+                            })
+    print("\nSuccessfully created a backup of the brands")
 
 
 def add_csv():
@@ -222,6 +263,8 @@ def app():
             create_product()
         elif choice == 'a':
             analysis()
+        elif choice == 'b':
+            create_backup()
 
 
 if __name__ == "__main__":
