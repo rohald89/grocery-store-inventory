@@ -1,5 +1,4 @@
 import csv
-from os import wait
 import time
 
 from models import Base, session, Brand, Product, engine
@@ -110,7 +109,7 @@ def create_product():
         except ValueError:
             input('''
                 \n**** DATE ERROR ****
-                \rThe date format should include a valid DD/MM/YYYY format from the past
+                \rThe date format should include a valid MM/DD/YYYY format
                 \rEx: 4/28/2021
                 \rPress enter to try again.
                 \r*******************''')
@@ -128,7 +127,9 @@ def create_product():
     new_product = Product(product_name=name, product_quantity=quantity,
                           product_price=price, date_updated=date_updated,
                           brand_id=brand_id)
-    existing_product = session.query(Product).filter(Product.product_name == new_product.product_name).first()
+    existing_product = session.query(
+        Product).filter(Product.product_name == new_product.product_name
+                        ).first()
     if existing_product:
         existing_product.product_name = name
         existing_product.product_price = price
@@ -157,21 +158,27 @@ def delete_product(product):
 
 
 def analysis():
-    most_expensive = session.query(Product).order_by(
+    products = session.query(Product)
+    brands = session.query(Brand)
+    number_of_products = products.count()
+    number_of_brands = brands.count()
+    most_expensive = products.order_by(
         Product.product_price.desc()).first()
-    least_expensive = session.query(Product).order_by(
+    least_expensive = products.order_by(
         Product.product_price).first()
     # https://stackoverflow.com/questions/28033656/finding-most-frequent-values-in-column-of-array-in-sql-alchemy
     most_common_brand_id, occurances = session.query(
         Product.brand_id, func.count(Product.product_id).label('qty')
         ).group_by('brand_id').order_by(desc('qty')).first()
-    print(most_common_brand_id, occurances)
     most_common_brand = session.query(
-        Brand).filter_by(brand_id=most_common_brand_id).one_or_none()
+        Brand).filter_by(brand_id=most_common_brand_id
+                         ).one_or_none().brand_name
     print(f"""
+    \rTotal Products: {number_of_products}
+    \rTotal Brands: {number_of_brands}
     \rMost Expensive: {most_expensive.product_name}
     \rLeast Expensive: {least_expensive.product_name}
-    \rMost Popular Brand: {most_common_brand.brand_name}""")
+    \rMost Popular Brand: {most_common_brand} with {occurances} products""")
     time.sleep(2)
 
 
@@ -198,7 +205,9 @@ def add_csv():
                 brand_id = session.query(Brand).filter(
                     Brand.brand_name == row[4]).one().brand_id
                 new_product = Product(product_name=name, product_price=price,
-                                      product_quantity=quantity, date_updated=date_updated, brand_id=brand_id)
+                                      product_quantity=quantity,
+                                      date_updated=date_updated,
+                                      brand_id=brand_id)
                 session.add(new_product)
         session.commit()
 
