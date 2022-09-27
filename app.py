@@ -48,6 +48,7 @@ def print_product(product):
     print(f"""
     \rProduct ID: \t{product.product_id}
     \rProduct Name: \t{product.product_name}
+    \rBrand Name: \t{product.brand.brand_name}
     \rProduct Qty: \t{product.product_quantity}
     \rProduct Price: \t{product.product_price}
     \rDate Updated: \t{product.date_updated.strftime("%m/%d/%Y")}""")
@@ -87,23 +88,19 @@ def read_product():
 
 
 def create_product():
-    # TODO Manage errors as currently the clean functions don't seem to handle them flawlessly
     name = input("\rProduct Name: ")
     price_error = True
     while price_error:
         price = input("\rProduct Price: ")
-        try:
-            price = clean_price(price)
-        except ValueError:
-            input("""
-            \n***** PRICE ERROR *****
-            \rThe price should be a number with a dollar symbol.
-            \rEx: $2.99
-            \rPress enter to try again.
-            \r**********************""")
-        else:
+        price = clean_price(price)
+        if type(price) == int:
             price_error = False
-    quantity = input("\rProduct Quantity: ")
+    quantity_error = True
+    while quantity_error:
+        quantity = input("\rProduct Quantity: ")
+        quantity = clean_quantity(quantity)
+        if type(quantity) == int:
+            quantity_error = False
     date_error = True
     while date_error:
         date_updated = input("\rDate Updated: ")
@@ -136,6 +133,11 @@ def create_product():
 
 def update_product(product):
     print('updating product')
+    '''
+    Update an existing product
+    '''
+    product.product_name = input("Provide a new Name")
+
     time.sleep(2)
 
 
@@ -149,10 +151,10 @@ def analysis():
         Product.product_price.desc()).first()
     least_expensive = session.query(Product).order_by(
         Product.product_price).first()
-    most_popular_brand = session.query(Product.brand_id,
-                                       func.count(Product.brand_id).label(
-                                           'count')
-                                       ).group_by(Product.brand_id).order_by(desc('count'))
+    most_popular_brand = session.query(Product).order_by(
+        desc(func.count(Product.brand_id))).first()
+    least_popular_brand = session.query(Product).order_by(
+        func.count(Product.brand_id)).first()
     print(f"""
     \rMost Expensive: {most_expensive.product_name}
     \rLeast Expensive: {least_expensive.product_name}

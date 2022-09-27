@@ -7,7 +7,7 @@ def clean_price(string):
         price = float(string)
     except ValueError:
         input('''
-        \n***** PRICE ERROR *****
+        \n***** PRICE ERROR WHILE CLEANING *****
         \rThe price should be a number with a dollar symbol.
         \rEx: $2.99
         \rPress enter to try again.

@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 engine = create_engine('sqlite:///inventory.db', echo=False)
@@ -13,6 +13,7 @@ class Brand(Base):
 
     brand_id = Column(Integer, primary_key=True)
     brand_name = Column(String)
+    products = relationship('Product', back_populates='brand')
 
 
 class Product(Base):
@@ -24,3 +25,4 @@ class Product(Base):
     product_price = Column(Integer)
     date_updated = Column(DateTime)
     brand_id = Column(Integer, ForeignKey('brands.brand_id'))
+    brand = relationship('Brand', back_populates='products')
