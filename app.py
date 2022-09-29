@@ -110,8 +110,9 @@ def create_product():
         brand_id = brand_exists.brand_id
     else:
         new_brand = Brand(brand_name=brand)
-        brand_id = new_brand.brand_id
         session.add(new_brand)
+        session.commit()
+        brand_id = new_brand.brand_id
     new_product = Product(product_name=name, product_quantity=quantity,
                           product_price=price, date_updated=date_updated,
                           brand_id=brand_id)
